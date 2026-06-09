@@ -169,7 +169,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             'controller_name',
-            default_value='franka_joint_trajectory_controller',
+            default_value='joint_impedance_controller',
             description='Name of the controller to spawn'
         ),
         OpaqueFunction(function=launch_setup)
