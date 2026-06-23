@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <xacro:macro name="rh_p12_gripper" params="parent prefix:='' use_sim:='false' use_fake_hardware:='false' fake_sensor_commands:='false' ros2_control:='true' *origin">
+  <xacro:macro name="rh_p12_gripper" params="parent prefix:='' port_name:='/dev/ttyUSB0' use_sim:='false' use_fake_hardware:='false' fake_sensor_commands:='false' ros2_control:='true' *origin">
     <!-- Include the definitions -->
     <xacro:include filename="$(find franka_robot_description)/urdf/end_effectors/rh_p12_rn_a/rh_p12_rn_a.xacro" />
     <xacro:include filename="$(find franka_robot_description)/urdf/end_effectors/rh_p12_rn_a/rh_p12_rn_a.gazebo.xacro" />
@@ -20,8 +20,9 @@
 
     <xacro:if value="${ros2_control}">
       <xacro:rh_p12_rn_a_system
-        name="RH_P12_RN_A_System" 
-        prefix="${prefix}" 
+        name="RH_P12_RN_A_System"
+        prefix="${prefix}"
+        port_name="${port_name}"
         use_sim="${use_sim}"
         use_fake_hardware="${use_fake_hardware}"
         fake_sensor_commands="${fake_sensor_commands}"/>

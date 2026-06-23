@@ -17,7 +17,8 @@
   <xacro:arg name="rpy_ee" default="0 0 0" />
   
   <!-- "none", "franka_default", "rh_p12_rn_a" -->
-  <xacro:arg name="gripper_type" default="franka_default" /> 
+  <xacro:arg name="gripper_type" default="franka_default" />
+  <xacro:arg name="port_name" default="/dev/ttyUSB0" />
   <xacro:arg name="parent" default="world" />
 
   <xacro:arg name="ros2_control" default="true" />
@@ -77,9 +78,10 @@
   <!-- Load Robotis RH-P12-RN-A Gripper if requested -->
   <xacro:if value="${'$(arg gripper_type)' == 'rh_p12_rn_a'}">
     <xacro:include filename="$(find franka_robot_description)/urdf/end_effectors/rh_p12_rn_a/rh_p12_rn_a_macro.urdf.xacro"/>
-    <xacro:rh_p12_gripper 
-        parent="${modified_prefix}$(arg arm_id)_link8" 
+    <xacro:rh_p12_gripper
+        parent="${modified_prefix}$(arg arm_id)_link8"
         prefix="${modified_prefix}"
+        port_name="$(arg port_name)"
         use_fake_hardware="$(arg use_fake_hardware)"
         fake_sensor_commands="$(arg fake_sensor_commands)"
         ros2_control="$(arg gripper_ros2_control)"
