@@ -16,7 +16,7 @@ def launch_setup(context, *args, **kwargs):
     if not yaml_file.endswith(".yaml"):
         yaml_file += ".yaml"
     yaml_file = PathJoinSubstitution([
-        FindPackageShare('franka_robot_description'), 'config', yaml_file
+        FindPackageShare('franka_launch'), 'config', yaml_file
     ]).perform(context)
     if not os.path.exists(yaml_file):
         raise FileNotFoundError(f"File not found: {yaml_file}")
