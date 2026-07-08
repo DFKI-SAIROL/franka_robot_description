@@ -19,10 +19,10 @@ def launch_setup(context, *args, **kwargs):
     if not yaml_file.endswith(".yaml"):
         yaml_file += ".yaml"
     
-    # If the provided path isn't absolute, assume it's in our config folder
+    # If the provided path isn't absolute, assume it's in franka_launch's config folder
     if not os.path.exists(yaml_file):
         yaml_file = PathJoinSubstitution([
-            FindPackageShare('franka_robot_description'), 'config', yaml_file
+            FindPackageShare('franka_launch'), 'config', yaml_file
         ]).perform(context)
 
     if not os.path.exists(yaml_file):
@@ -155,7 +155,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'yaml_file',
             default_value='dfki_fr3_right',
-            description='Name of the YAML config file in franka_robot_description/config (e.g., dfki_fr3_right)'
+            description='Name of the YAML config file in franka_launch/config (e.g., dfki_fr3_right)'
         ),
         DeclareLaunchArgument(
             'use_sim',
