@@ -25,9 +25,13 @@
       - name: the camera's name.  should match the parameter sent to the launch file for this camera
       - model: the tye of camera, one of zed, zedm, zed2, zed2i
       - parent: the parent link of the camera.  must be defined in the URDF file that uses this macro
-      - origin: the xyz/rpy offset from the parent link
+      - origin: the xyz/rpy offset from the parent link (a correction applied before the holder)
+      - holder_yaw: yaw of the holder about the flange axis (both wrist mounts: -pi/4)
+      - image_flip: the published images are turned by 180 deg about the optical axis relative to
+        the mounted camera (measured on the wrist ZED X Minis: the table only comes out level
+        with it), so the optical frames are rolled by pi
   -->
-  <xacro:macro name="zed_camera" params="name=zed model=zed parent *origin">
+  <xacro:macro name="zed_camera" params="name=zed model=zed parent holder_yaw:=${-M_PI/4} image_flip:=false *origin">
     <xacro:if value="${model == 'zed'}">
       <xacro:property name="baseline" value="0.12" />
       <xacro:property name="height" value="0.03" />
@@ -96,11 +100,19 @@
       </collision>
     </link>
 
-    <joint name="${name}_holder_joint" type="fixed">
+    <!-- The origin block: a correction of the whole camera in the parent frame (zero for the
+         nominal mount; written by scripts/python/board_calibration.py for the wrist cameras) -->
+    <link name="${name}_camera_mount" />
+    <joint name="${name}_mount_joint" type="fixed">
       <parent link="${parent}"/>
-      <child link="${name}_camera_holder"/>
-      <origin xyz="0 0 0.00255" rpy="${M_PI} 0 -${M_PI/4}" />
+      <child link="${name}_camera_mount"/>
       <xacro:insert_block name="origin" />
+    </joint>
+
+    <joint name="${name}_holder_joint" type="fixed">
+      <parent link="${name}_camera_mount"/>
+      <child link="${name}_camera_holder"/>
+      <origin xyz="0 0 0.00255" rpy="${M_PI} 0 ${holder_yaw}" />
     </joint>
 
     <link name="${name}_base_link" />
@@ -146,7 +158,7 @@
 
     <link name="${name}_left_camera_optical_frame"/>
     <joint name="${name}_left_camera_optical_joint" type="fixed">
-      <origin xyz="0 0 0" rpy="-${M_PI/2} 0.0 -${M_PI/2}"/>
+      <origin xyz="0 0 0" rpy="${M_PI/2 if image_flip else -M_PI/2} 0.0 ${M_PI/2 if image_flip else -M_PI/2}"/>
       <parent link="${name}_left_camera_frame"/>
       <child link="${name}_left_camera_optical_frame"/>
     </joint>
@@ -161,7 +173,7 @@
 
     <link name="${name}_right_camera_optical_frame"/>
     <joint name="${name}_right_camera_optical_joint" type="fixed">
-      <origin xyz="0 0 0" rpy="-${M_PI/2} 0.0 -${M_PI/2}"/>
+      <origin xyz="0 0 0" rpy="${M_PI/2 if image_flip else -M_PI/2} 0.0 ${M_PI/2 if image_flip else -M_PI/2}"/>
       <parent link="${name}_right_camera_frame"/>
       <child link="${name}_right_camera_optical_frame"/>
     </joint>

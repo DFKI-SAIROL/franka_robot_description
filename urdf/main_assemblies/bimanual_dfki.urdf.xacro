@@ -34,6 +34,9 @@
   <xacro:arg name="cam_roll"      default="0.0" />
   <xacro:arg name="cam_pitch"     default="0.0" />
   <xacro:arg name="cam_yaw"       default="0.0" />
+  <!-- Wrist ZED mount (zed_macro.urdf.xacro): holder yaw on the flange, images turned by pi -->
+  <xacro:arg name="cam_holder_yaw" default="-0.785398163" />
+  <xacro:arg name="cam_image_flip" default="true" />
   <xacro:arg name="gnss_frame"    default="" />
 
   <!-- ============================================== -->
@@ -95,7 +98,10 @@
   <!-- ============================================== -->
   <xacro:if value="${'$(arg camera_name)' == 'zed' and '$(arg gripper_type)' == 'rh_p12_rn_a'}">
     <xacro:include filename="$(find franka_robot_description)/urdf/cameras/zed/zed_macro.urdf.xacro" />
-    <xacro:zed_camera name="$(arg camera_name)" model="$(arg camera_model)" parent="${modified_prefix}$(arg arm_id)_link8">
+    <!-- Prefixed like the arm: both wrist cameras share camera_name, and unprefixed frames
+         (zed_left_camera_optical_frame, ...) collide on /tf_static between the two robots. -->
+    <xacro:zed_camera name="${modified_prefix}$(arg camera_name)" model="$(arg camera_model)" parent="${modified_prefix}$(arg arm_id)_link8"
+                      holder_yaw="$(arg cam_holder_yaw)" image_flip="$(arg cam_image_flip)">
       <origin 
         xyz="$(arg cam_pos_x) $(arg cam_pos_y) $(arg cam_pos_z)" 
         rpy="$(arg cam_roll) $(arg cam_pitch) $(arg cam_yaw)"
