@@ -37,6 +37,8 @@
   <!-- Wrist ZED mount (zed_macro.urdf.xacro): holder yaw on the flange, images turned by pi -->
   <xacro:arg name="cam_holder_yaw" default="-0.785398163" />
   <xacro:arg name="cam_image_flip" default="true" />
+  <!-- Wrist holder: default (zed_holder.stl) | short (zed_holder_short.stl, camera closer to the flange) -->
+  <xacro:arg name="camera_holder" default="default" />
   <xacro:arg name="gnss_frame"    default="" />
 
   <!-- ============================================== -->
@@ -101,7 +103,7 @@
     <!-- Prefixed like the arm: both wrist cameras share camera_name, and unprefixed frames
          (zed_left_camera_optical_frame, ...) collide on /tf_static between the two robots. -->
     <xacro:zed_camera name="${modified_prefix}$(arg camera_name)" model="$(arg camera_model)" parent="${modified_prefix}$(arg arm_id)_link8"
-                      holder_yaw="$(arg cam_holder_yaw)" image_flip="$(arg cam_image_flip)">
+                      holder_yaw="$(arg cam_holder_yaw)" holder="$(arg camera_holder)" image_flip="$(arg cam_image_flip)">
       <origin 
         xyz="$(arg cam_pos_x) $(arg cam_pos_y) $(arg cam_pos_z)" 
         rpy="$(arg cam_roll) $(arg cam_pitch) $(arg cam_yaw)"

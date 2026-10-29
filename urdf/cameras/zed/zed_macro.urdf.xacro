@@ -27,11 +27,15 @@
       - parent: the parent link of the camera.  must be defined in the URDF file that uses this macro
       - origin: the xyz/rpy offset from the parent link (a correction applied before the holder)
       - holder_yaw: yaw of the holder about the flange axis (both wrist mounts: -pi/4)
+      - holder: the wrist holder, "default" (zed_holder.stl: camera on a ~40 deg seat 93 mm off the
+        flange axis) or "short" (zed_holder_short.stl, "close": camera bottom on a vertical wall
+        49 mm off the axis, looking along the gripper). The short pose is nominal from the CAD
+        (wall face, screw height); the board calibration corrects it through the origin block.
       - image_flip: the published images are turned by 180 deg about the optical axis relative to
         the mounted camera (measured on the wrist ZED X Minis: the table only comes out level
         with it), so the optical frames are rolled by pi
   -->
-  <xacro:macro name="zed_camera" params="name=zed model=zed parent holder_yaw:=${-M_PI/4} image_flip:=false *origin">
+  <xacro:macro name="zed_camera" params="name=zed model=zed parent holder_yaw:=${-M_PI/4} holder:=default image_flip:=false *origin">
     <xacro:if value="${model == 'zed'}">
       <xacro:property name="baseline" value="0.12" />
       <xacro:property name="height" value="0.03" />
@@ -81,12 +85,33 @@
       <xacro:property name="optical_offset_x" value="-0.01" />
     </xacro:if>
 
+    <!-- Holder geometry: mesh, camera screw point (base_link) and camera centre relative to it -->
+    <xacro:if value="${holder == 'default'}">
+      <xacro:property name="holder_mesh" value="zed_holder.stl" />
+      <xacro:property name="holder_scale" value="1 1 1" />
+      <xacro:property name="base_xyz" value="-0.093473 0 -0.015021" />
+      <xacro:property name="center_xyz" value="0 0 -${height/2}" />
+      <xacro:property name="center_pitch" value="0.85" />
+    </xacro:if>
+    <xacro:if value="${holder == 'short'}">
+      <!-- Wall face x = -49.37 mm - 0.0462 z (2.6 deg), centre screw at z = -14.2 mm; the camera
+           centre half a camera height out of the wall, its up axis into the wall. -->
+      <xacro:property name="holder_mesh" value="zed_holder_short.stl" />
+      <xacro:property name="holder_scale" value="0.001 0.001 0.001" />
+      <xacro:property name="base_xyz" value="-0.048714 0 -0.0142" />
+      <xacro:property name="center_xyz" value="${-0.99893 * height/2} 0 ${-0.04615 * height/2}" />
+      <xacro:property name="center_pitch" value="1.52463" />
+    </xacro:if>
+    <xacro:unless value="${holder in ('default', 'short')}">
+      <xacro:property name="holder_unknown" lazy_eval="false" value="${xacro.fatal('zed_camera: unknown holder ' + str(holder) + ' (default | short)')}" />
+    </xacro:unless>
+
     <!-- Camera mounting point (the threaded screw hole in the bottom) -->
     <link name="${name}_camera_holder">
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://franka_robot_description/meshes/cameras/zed/zed_holder.stl" />
+          <mesh filename="package://franka_robot_description/meshes/cameras/zed/${holder_mesh}" scale="${holder_scale}" />
         </geometry>
         <material name="red">
           <color rgba="0.5 0.5 0.5 1.0" />
@@ -95,7 +120,7 @@
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://franka_robot_description/meshes/cameras/zed/zed_holder.stl" />
+          <mesh filename="package://franka_robot_description/meshes/cameras/zed/${holder_mesh}" scale="${holder_scale}" />
         </geometry>
       </collision>
     </link>
@@ -119,7 +144,7 @@
     <joint name="${name}_base_joint" type="fixed">
       <parent link="${name}_camera_holder"/>
       <child link="${name}_base_link"/>
-      <origin xyz="-0.093473 0 -0.015021" rpy="0 0 0" />
+      <origin xyz="${base_xyz}" rpy="0 0 0" />
     </joint>
 
     <!-- Camera Center -->
@@ -145,7 +170,7 @@
     <joint name="${name}_camera_center_joint" type="fixed">
       <parent link="${name}_base_link"/>
       <child link="${name}_camera_center"/>
-      <origin xyz="0 0 -${height/2}" rpy="0 0.85 0" />
+      <origin xyz="${center_xyz}" rpy="0 ${center_pitch} 0" />
     </joint>
 
     <!-- Left Camera -->
