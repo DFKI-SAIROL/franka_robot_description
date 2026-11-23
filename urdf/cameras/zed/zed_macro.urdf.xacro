@@ -24,7 +24,7 @@
     Parameters:
       - name: the camera's name.  should match the parameter sent to the launch file for this camera
       - model: the tye of camera, one of zed, zedm, zed2, zed2i
-      - parent: the parent link of the camera.  must be defined in the URDF file that uses this macro
+      - parent: the parent link of the camera holder.  must be defined in the URDF file that uses this macro
       - origin: the xyz/rpy offset from the parent link
   -->
   <xacro:macro name="zed_camera" params="name=zed model=zed parent *origin">
@@ -99,15 +99,15 @@
     <joint name="${name}_holder_joint" type="fixed">
       <parent link="${parent}"/>
       <child link="${name}_camera_holder"/>
-      <origin xyz="0 0 0.00255" rpy="${M_PI} 0 -${M_PI/4}" />
+      <origin xyz="0 0 0.00255" rpy="${M_PI} 0 ${3*M_PI/4}" />
       <xacro:insert_block name="origin" />
     </joint>
 
-    <link name="${name}_base_link" />
-    <joint name="${name}_base_joint" type="fixed">
+    <link name="${name}_camera_link" />
+    <joint name="${name}_camera_link_joint" type="fixed">
       <parent link="${name}_camera_holder"/>
-      <child link="${name}_base_link"/>
-      <origin xyz="-0.093473 0 -0.015021" rpy="0 0 0" />
+      <child link="${name}_camera_link"/>
+      <origin xyz="-0.085473 0 -0.016021" rpy="${M_PI} 0.873 0" />
     </joint>
 
     <!-- Camera Center -->
@@ -120,6 +120,7 @@
         <material name="${model}_mat" />
       </visual>
       <collision>
+        <origin xyz="${screw_offset_x} 0 ${screw_offset_z}" rpy="0 0 0"/>
         <geometry>
           <mesh filename="package://franka_robot_description/meshes/cameras/zed/${model}.stl" />
         </geometry>
@@ -131,9 +132,9 @@
       </inertial>
     </link>
     <joint name="${name}_camera_center_joint" type="fixed">
-      <parent link="${name}_base_link"/>
+      <parent link="${name}_camera_link"/>
       <child link="${name}_camera_center"/>
-      <origin xyz="0 0 -${height/2}" rpy="0 0.85 0" />
+      <origin xyz="0 0 ${height/2}" rpy="0 ${bottom_slope} 0" />
     </joint>
 
     <!-- Left Camera -->

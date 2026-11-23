@@ -18,7 +18,8 @@
             <plugin>dynamixel_hardware_interface/DynamixelHardware</plugin>
             <param name="port_name">${port_name}</param>
             <param name="baud_rate">2000000</param>
-            <param name="error_timeout_ms">500</param>
+            <!-- 2 s: the long gripper cables drop replies in bursts; 500 ms took the left gripper down. -->
+            <param name="error_timeout_ms">2000</param>
             <param name="dynamixel_model_folder">/param/dxl_model</param>
             <param name="number_of_joints">1</param>
             <param name="number_of_transmissions">1</param>

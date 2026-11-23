@@ -16,25 +16,25 @@
   <xacro:arg name="xyz_ee" default="0 0 0" />
   <xacro:arg name="rpy_ee" default="0 0 0" />
   
-  <!-- "none", "franka_default", "rh_p12_rn_a" -->
+  <!-- "franka_default", "rh_p12_rn_a", or anything else for a passive end-effector -->
   <xacro:arg name="gripper_type" default="franka_default" />
-  <xacro:arg name="port_name" default="/dev/ttyUSB0" />
+  <xacro:arg name="gripper_port" default="/dev/ttyUSB0" />
   <xacro:arg name="parent" default="world" />
 
   <xacro:arg name="ros2_control" default="true" />
   <xacro:arg name="gripper_ros2_control" default="true" />
   <xacro:arg name="gazebo" default="false" />
 
-  <xacro:arg name="camera_name" default="zed" />
+  <!-- Camera mounted on this arm; 'none' means this arm carries no camera. -->
+  <xacro:arg name="camera_name" default="none" />
   <xacro:arg name="camera_model" default="zedxm" />
-  <xacro:arg name="base_frame"    default="base_link" />
+  <xacro:arg name="camera_holder_parent_frame" default="fr3_link8" />
   <xacro:arg name="cam_pos_x"     default="0.0" />
   <xacro:arg name="cam_pos_y"     default="0.0" />
   <xacro:arg name="cam_pos_z"     default="0.0" />
   <xacro:arg name="cam_roll"      default="0.0" />
   <xacro:arg name="cam_pitch"     default="0.0" />
   <xacro:arg name="cam_yaw"       default="0.0" />
-  <xacro:arg name="gnss_frame"    default="" />
 
   <!-- ============================================== -->
   <!-- Property Processing                            -->
@@ -81,10 +81,10 @@
     <xacro:rh_p12_gripper
         parent="${modified_prefix}$(arg arm_id)_link8"
         prefix="${modified_prefix}"
-        port_name="$(arg port_name)"
         use_fake_hardware="$(arg use_fake_hardware)"
         fake_sensor_commands="$(arg fake_sensor_commands)"
         ros2_control="$(arg gripper_ros2_control)"
+        port_name="$(arg gripper_port)"
         use_sim="$(arg use_sim)">
         <origin xyz="$(arg xyz_ee)" rpy="$(arg rpy_ee)"/>
     </xacro:rh_p12_gripper>
@@ -93,9 +93,9 @@
   <!-- ============================================== -->
   <!-- Zed Camera Attachments                    -->
   <!-- ============================================== -->
-  <xacro:if value="${'$(arg camera_name)' == 'zed' and '$(arg gripper_type)' == 'rh_p12_rn_a'}">
+  <xacro:if value="${'$(arg camera_name)' != 'none'}">
     <xacro:include filename="$(find franka_robot_description)/urdf/cameras/zed/zed_macro.urdf.xacro" />
-    <xacro:zed_camera name="$(arg camera_name)" model="$(arg camera_model)" parent="${modified_prefix}$(arg arm_id)_link8">
+    <xacro:zed_camera name="$(arg camera_name)" model="$(arg camera_model)" parent="${modified_prefix}$(arg camera_holder_parent_frame)">
       <origin 
         xyz="$(arg cam_pos_x) $(arg cam_pos_y) $(arg cam_pos_z)" 
         rpy="$(arg cam_roll) $(arg cam_pitch) $(arg cam_yaw)"
@@ -122,6 +122,17 @@
       <parent link="${modified_prefix}rh_p12_rn_grasp_point" />
       <child link="${modified_prefix}grasp_point" />
       <origin xyz="0 0 0" rpy="0 0 0" />
+    </joint>
+  </xacro:if>
+
+  <!-- Anything else is a passive end-effector: grasp_point sits at the xyz_ee/rpy_ee
+       offset from the flange, so end_effector_frame resolves whatever is fitted. -->
+  <xacro:if value="${'$(arg gripper_type)' not in ['franka_default', 'rh_p12_rn_a']}">
+    <link name="${modified_prefix}grasp_point" />
+    <joint name="${modified_prefix}grasp_point_joint" type="fixed">
+      <parent link="${modified_prefix}$(arg arm_id)_link8" />
+      <child link="${modified_prefix}grasp_point" />
+      <origin xyz="$(arg xyz_ee)" rpy="$(arg rpy_ee)" />
     </joint>
   </xacro:if>
 
